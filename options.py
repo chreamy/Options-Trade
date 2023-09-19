@@ -1,0 +1,65 @@
+import numpy as np
+import statsmodels.api as sm
+import json
+import requests
+from api import db
+
+def cal_slope(array):
+    data = np.array(array)
+    time = np.arange(1, len(data) + 1)
+    X = sm.add_constant(time)
+    model = sm.OLS(data, X).fit()
+    negative = model.params[1]<0
+    slope = round(abs(abs(model.params[1])*(len(array)-1)**(1/(len(array)-1))*100),2)
+    if negative: slope = -slope
+    dev = np.std(data)
+    return slope
+
+file = open("reports.json","r")
+stocks = json.load(file)
+file.close()
+symbol = input("Enter a NYSE code: ").lower()
+if symbol not in stocks:
+    db([symbol])
+file = open("reports.json","r")
+stocks = json.load(file)
+stock = stocks[symbol]
+price = json.loads(requests.get('https://financialmodelingprep.com/api/v3/quote-short/'+symbol+'?apikey=90449c63998514b28abd312885a78779').content)[0]['price']
+
+print("\n\nAnalysis Report for",symbol.upper(),'\n',''.join(['-' for x in range(len(symbol)+19)]))
+print("Price",price,end='\n\n')
+score = {"e":0,"d":0,"f":0,"r":0,"i":0}
+slope = cal_slope(stock['eps'])
+print("<EPS> ",stock["eps"],"\nEPS Trend: ",slope,"%",sep='')
+if(np.mean(stock["eps"])>0 and slope>0):score['e']=1
+if len(stock['dividend'])!=0:
+    slope = cal_slope(stock['dividend'])
+    print("<Dividend> ",stock["dividend"],"\nDividend Trend: ",slope,"%",sep='')
+    if(np.mean(stock["dividend"])>0 and slope>0):score['d']=1
+else: print("No Dividends")
+slope = cal_slope(stock['cfps'])
+print("<Cash Flow per Share> ",stock["cfps"],"\nCash Flow Trend: ",slope,"%",sep='')
+if(np.mean(stock["cfps"])>0 and slope>0):score['f']=1
+slope = cal_slope(stock['roe'])
+print("<ROE> ",stock["roe"],"\nROE Trend: ",slope,"%",sep='')
+if(np.mean(stock["roe"])>0 and slope>0):score['r']=1
+print("<Interest Coverage> ",stock["interestcoverage"][-1])
+if(stock["interestcoverage"][-1]>10):score['i']=1
+elif(stock["interestcoverage"][-1]>4):score['i']=0.5
+
+
+print("\nScore: E(",score['e'],') D(',score['d'],') F(',score['f'],') R(',score['r'],') I(',score['i'],')',sep='')
+print("Total:",score['e']+score['d']+score['f']+score['r']+score['i'],end='\n\n')
+growth = min(stock["1y"][-1],stock["3y"][-1] if len(stock["3y"])!=0 else 999,stock["5y"][-1] if len(stock["5y"])!=0 else 999,stock["10y"][-1] if len(stock["10y"])!=0 else 999,30)
+print("EPS Growth: ",growth,"%"+(" < 12" if growth<12 else " > 12"),sep='')
+print('Growth Evaluation: $',round(stock['eps'][-1]*max(12,growth) if stock['eps'][-1]>0 else 0,2),' (',round(stock['eps'][-1]*max(12,growth)/price*100 if stock['eps'][-1]>0 else 0,2),'%)',sep='')
+if len(stock['dividend'])!=0:
+    print("\nLatest Dividend Yield: ",round(stock["dividend"][-1]/price*100,2),'%',sep='')
+    print('Dividend Evaluation: $',round(stock["dividend"][-1]*25,2),' (',round(stock["dividend"][-1]*25/price*100,2),'%)',sep='')
+else:
+    print('\nDividend Evaluation: $0')
+print("\nBVPS: ",stock["bvps"],sep='')
+print('Asset Evaluation: $',round(stock["bvps"]*0.8,2),' (',round(stock["bvps"]*0.8/price*100,2),'%)',sep='')
+fairprice = round((stock["bvps"]*0.8)+(stock["dividend"][-1]*25 if len(stock['dividend'])!=0 else 0)+(stock['eps'][-1]*max(12,growth) if stock['eps'][-1]>0 else 0),2)
+print("\nCumulative Value: ",fairprice,' (',round(fairprice/price*100,2),'%) ',("BUY" if fairprice>price else "SELL"),sep='')
+
