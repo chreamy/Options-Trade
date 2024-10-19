@@ -1,0 +1,65 @@
+{
+    "msft": {
+        "price": 418.16,
+        "stdev": 0.02091255767432752,
+        "score": 6,
+        "asset": 5.31,
+        "growth": 27.78,
+        "dividend": 16.26,
+        "overall": 27.78
+    },
+    "nvda": {
+        "price": 138,
+        "stdev": 0.06645322386448063,
+        "score": 5.5,
+        "asset": 3.4,
+        "growth": 15.13,
+        "dividend": 2.9,
+        "overall": 15.13
+    },
+    "sbux": {
+        "price": 96.84,
+        "stdev": 0.04342255885058418,
+        "score": 5.0,
+        "asset": -6.02,
+        "growth": 35.07,
+        "dividend": 54.73,
+        "overall": 54.73
+    },
+    "meta": {
+        "price": 576.47,
+        "stdev": 0.050737095444073455,
+        "score": 3.5,
+        "asset": 7.24,
+        "growth": 17.88,
+        "dividend": 0,
+        "overall": 17.88
+    },
+    "nflx": {
+        "price": 763.89,
+        "stdev": 0.03104979469590002,
+        "score": 3.0,
+        "asset": 5.39,
+        "growth": 15.63,
+        "dividend": 0,
+        "overall": 15.63
+    },
+    "amzn": {
+        "price": 188.99,
+        "stdev": 0.038039619820746044,
+        "score": 0.5,
+        "asset": 6.94,
+        "growth": 0,
+        "dividend": 0,
+        "overall": 6.94
+    },
+    "u": {
+        "price": 22.11,
+        "stdev": 0.11141467226311337,
+        "score": 0,
+        "asset": 31.49,
+        "growth": 0,
+        "dividend": 0,
+        "overall": 31.48
+    }
+}
