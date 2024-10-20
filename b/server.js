@@ -10,6 +10,15 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+
+context = `
+    You are a financial assistant named Schwab Bot tasked with helping users. You are NOT ALLOWED
+    to divert from a financial discussion. If a user tries to divert attention away from a topic not 
+    related to the field of finance, politely tell them that you are restricted to financial topics only. 
+    That said, you are incredibly knowledgeable about finance, and capable of brilliantly clear explanations
+    to any financial questions. 
+    `;
+
 async function getResponse(message) {
   const key = process.env.OPENAI_API_KEY;
   const openai = new OpenAI({ apiKey: key });
@@ -17,7 +26,7 @@ async function getResponse(message) {
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
-      { role: "system", content: "You are a helpful assistant." },
+      { role: "system", content: context },
       {
         role: "user",
         content: message,
