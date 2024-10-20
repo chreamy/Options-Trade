@@ -37,37 +37,42 @@ async function getDataFromFMP(typ, arg='') {
 }
 
 async function getMetrics(symbol) {
-  // Balance sheet
-  const bs = await getDataFromFMP(`balance-sheet-statement/${symbol}`, 'period=annual').then(dataFromFMP => {
-      return {
-          'totalAssets': dataFromFMP[0]['totalCurrentAssets'] + dataFromFMP[0]['totalNonCurrentAssets'],
-          'totalCurrentAssets': dataFromFMP[0]['totalCurrentAssets'],
-          'totalLiabilities': dataFromFMP[0]['totalCurrentLiabilities'] + dataFromFMP[0]['totalNonCurrentLiabilities'],
-          'totalCurrentLiabilities': dataFromFMP[0]['totalCurrentLiabilities'],
-          'totalStockholdersEquity': dataFromFMP[0]['totalStockholdersEquity'],
-          'goodwill': dataFromFMP[0]['totalCurrentLiabilities'],
-          'workingCapital': dataFromFMP[0]['totalCurrentAssets'] - dataFromFMP[0]['totalCurrentLiabilities']
-      };
-  });
-  // Balance sheet change
-  const bsc = await getDataFromFMP(`balance-sheet-statement-growth/${symbol}`).then(dataFromFMP => {
-      return {
-          'growthTotalCurrentAssets': dataFromFMP[0]['growthTotalCurrentAssets'],
-          'growthTotalCurrentLiabilities': dataFromFMP[0]['growthTotalCurrentLiabilities']
-      };
-  });
-  // DCF
-  const dcf = await getDataFromFMP(`discounted-cash-flow/${symbol}`).then(dataFromFMP => {
-      return {
-          'intrinsicValue': dataFromFMP[0]['dcf'],
-          'marketValue': dataFromFMP[0]['Stock Price']
-      }
-  });
-  return {...bs, ...bsc, ...dcf};
+  try {
+    // Balance sheet
+    const bs = await getDataFromFMP(`balance-sheet-statement/${symbol}`, 'period=annual').then(dataFromFMP => {
+        return {
+            'totalAssets': dataFromFMP[0]['totalCurrentAssets'] + dataFromFMP[0]['totalNonCurrentAssets'],
+            'totalCurrentAssets': dataFromFMP[0]['totalCurrentAssets'],
+            'totalLiabilities': dataFromFMP[0]['totalCurrentLiabilities'] + dataFromFMP[0]['totalNonCurrentLiabilities'],
+            'totalCurrentLiabilities': dataFromFMP[0]['totalCurrentLiabilities'],
+            'totalStockholdersEquity': dataFromFMP[0]['totalStockholdersEquity'],
+            'goodwill': dataFromFMP[0]['totalCurrentLiabilities'],
+            'workingCapital': dataFromFMP[0]['totalCurrentAssets'] - dataFromFMP[0]['totalCurrentLiabilities']
+        };
+    });
+    // Balance sheet change
+    const bsc = await getDataFromFMP(`balance-sheet-statement-growth/${symbol}`).then(dataFromFMP => {
+        return {
+            'growthTotalCurrentAssets': dataFromFMP[0]['growthTotalCurrentAssets'],
+            'growthTotalCurrentLiabilities': dataFromFMP[0]['growthTotalCurrentLiabilities']
+        };
+    });
+    // DCF
+    const dcf = await getDataFromFMP(`discounted-cash-flow/${symbol}`).then(dataFromFMP => {
+        return {
+            'intrinsicValue': dataFromFMP[0]['dcf'],
+            'marketValue': dataFromFMP[0]['Stock Price']
+        }
+    });
+    return {...bs, ...bsc, ...dcf};
+  }
+  catch(error) {
+    console.error(error);
+  }
 }
 
 async function getNews(symbol) {
-  return await getDataFromFMP('stock_news', `ticker=${symbol}&limit=3`).then(dataFromFMP => {
+  return await getDataFromFMP('stock_news', `tickers=${symbol}&limit=3`).then(dataFromFMP => {
     return dataFromFMP;
   });
 }
