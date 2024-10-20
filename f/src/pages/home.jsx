@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import mt from "../assets/mountain.jpg";
+import load from "../assets/load.gif";
 import ReactCardFlip from "react-card-flip";
+import Spline from "@splinetool/react-spline";
+import { CSSTransition } from "react-transition-group";
 
 function Card({ label, val, description }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -30,32 +33,167 @@ function Card({ label, val, description }) {
   );
 }
 
-function StockChart({ stockId }) {
+const callWebhook = () => {
+  fetch("https://hooks.spline.design/aa-LjQQwAPY", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "dF6cbFQcXX2lfMQnS4x2h30u_1UJkNTvHVSrU9SYH8c",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({}), // Your data payload here
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error("Network response was not ok.");
+    })
+    .then((data) => {
+      console.log("Success:", data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+};
+
+function SplineComponent() {
+  const messages = [
+    "Ask me about the technical analysis of this stock.",
+    "Ask me about the latest news related to this stock.",
+    "Ask me about the fundamental analysis of this company.",
+    "Ask me about asset management strategies for your portfolio.",
+    "Ask me about how this stock compares to its competitors.",
+    "Ask me about the company's recent earnings report.",
+    "Ask me about the best-performing sectors in the market.",
+    "Ask me about how this stock is performing against the market.",
+    "Ask me about how macroeconomic factors could affect this company.",
+    "Ask me about the dividend yield and payout ratio of this stock.",
+  ];
+
+  const [currentMessage, setCurrentMessage] = useState(messages[0]);
+  const [isVisible, setIsVisible] = useState(true);
+
+  const handleSplineClick = () => {
+    // Fade out
+    setIsVisible(false);
+
+    // Change message after 1 second (duration of fade-out)
+    setTimeout(() => {
+      const nextMessage = messages[Math.floor(Math.random() * messages.length)];
+      setCurrentMessage(nextMessage);
+      setIsVisible(true); // Fade in again
+    }, 1000); // 1 second delay to allow fade-out
+  };
+
+  return (
+    <div className="relative w-[510px] h-[250px] flex mr-[20px] ml-auto cursor-pointer">
+      {/* Spline Component */}
+      <Spline
+        scene="https://prod.spline.design/S7D4JRV2ZdplQ04u/scene.splinecode"
+        onClick={handleSplineClick}
+      />
+
+      {/* Thought Bubble */}
+      <CSSTransition
+        in={isVisible}
+        timeout={1000} // 1 second for fade
+        classNames="fade"
+        unmountOnExit
+      >
+        <div className="top-0 left-0">
+          <div className="absolute ml-[-55px] mt-[70px] bg-white text-black p-2 rounded-lg shadow-lg w-[13px] h-[15px]"></div>
+          <div className="absolute ml-[-30px] mt-[47px] bg-white text-black p-2 rounded-lg shadow-lg w-[20px] h-[30px]"></div>
+          <div className=" bg-white text-black p-2 rounded-lg text-[12px] leading-[14px] shadow-lg w-[150px] h-[70px]">
+            {currentMessage}
+          </div>
+        </div>
+      </CSSTransition>
+
+      {/* CSS for fade effect */}
+      <style jsx>{`
+        .fade-enter {
+          opacity: 0;
+        }
+        .fade-enter-active {
+          opacity: 1;
+          transition: opacity 1s;
+        }
+        .fade-exit {
+          opacity: 1;
+        }
+        .fade-exit-active {
+          opacity: 0;
+          transition: opacity 1s;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function StockChart({ stockId, indicators }) {
+  const [isPopout, setIsPopout] = useState(false);
+
+  const handlePopout = () => {
+    setIsPopout(true);
+  };
+
+  const closePopout = () => {
+    setIsPopout(false);
+  };
+
   useEffect(() => {
     if (window.TradingView) {
       new window.TradingView.widget({
+        // TradingView widget options
         width: "100%",
         height: "100%",
-        symbol: stockId, // Use stockId as the ticker symbol
-        interval: "D",
-        timezone: "Etc/UTC",
-        theme: "dark",
-        style: "1",
-        locale: "en",
-        toolbar_bg: "#f1f3f6",
-        enable_publishing: false,
-        hide_side_toolbar: false,
-        allow_symbol_change: true,
-        container_id: "tradingview_chart",
+        symbol: stockId,
+        container_id: isPopout
+          ? "tradingview_chart_popout"
+          : "tradingview_chart",
+        studies: indicators,
       });
     }
-  }, [stockId]); // Re-render when stockId changes
+  }, [stockId, indicators, isPopout]);
 
   return (
-    <div className="w-full h-[400px] bg-gray-900 rounded shadow-md">
-      {/* Embed TradingView widget */}
-      <div id="tradingview_chart" className="w-full h-full"></div>
-    </div>
+    <>
+      <div className="relative h-[300px]">
+        <div className="w-full h-[300px] bg-gray-900 rounded shadow-md">
+          <div id="tradingview_chart" className="w-full h-full"></div>
+        </div>
+
+        {/* Popout button */}
+        <button
+          className="absolute top-2 right-2 p-2 bg-blue-500 text-white rounded"
+          onClick={handlePopout}
+        >
+          Popout
+        </button>
+      </div>
+
+      {/* Popout Modal */}
+      {isPopout && (
+        <div className="fixed inset-0 bg-black py-[12.5vh] bg-opacity-75 flex justify-center items-center z-50">
+          <div className="w-[75%] h-[75vh] bg-gray-900 rounded shadow-lg relative">
+            {/* Embed TradingView widget for the pop-out */}
+            <div
+              id="tradingview_chart_popout"
+              className="w-full h-[75vh]"
+            ></div>
+
+            {/* Close button */}
+          </div>
+          <button
+            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded"
+            onClick={closePopout}
+          >
+            Close
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -128,14 +266,29 @@ function Home() {
 
   const [selectedStock, setSelectedStock] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [indicators, setIndicators] = useState([]);
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleClick = () => {
+    setIsClicked(true);
+  };
 
   const handleStockSelect = (stockId) => {
     const selectedStockWithId = {
       ...stocks[stockId],
       stockId: stockId,
     };
-
+    setIsClicked(false);
     setSelectedStock(selectedStockWithId);
+  };
+
+  const handleIndicatorChange = (e) => {
+    const { name, checked } = e.target;
+    if (checked) {
+      setIndicators((prev) => [...prev, name]); // Add indicator if checked
+    } else {
+      setIndicators((prev) => prev.filter((indicator) => indicator !== name)); // Remove indicator if unchecked
+    }
   };
 
   const filteredStocks = Object.keys(stocks).filter((stockId) =>
@@ -161,7 +314,7 @@ function Home() {
           {filteredStocks.map((stockId) => (
             <li
               key={stockId}
-              className="cursor-pointer p-2 hover:bg-gray-700"
+              className="cursor-pointer font-medium p-2 hover:bg-gray-700"
               onClick={() => handleStockSelect(stockId)}
             >
               {stockId.toUpperCase()}
@@ -179,7 +332,45 @@ function Home() {
         {selectedStock ? (
           <div className="absolute w-[85%] h-full z-1 shadow-md rounded">
             <div className="flex w-full h-full">
-              <div className="w-1/2 p-4 shadow-md">
+              <div className="absolute w-[100px] ml-[50%] translate-x-[-50px] h-full content-center place-self-center justify-self-center items-center flex text-center z-[10]">
+                <style>
+                  {`
+@keyframes zoomFade {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+`}
+                </style>
+                <div
+                  className={
+                    "text-white font-medium w-[83px] mt-[40px] rounded-[10px] mx-auto" +
+                    (!isClicked
+                      ? " border-white border-2 cursor-pointer hover:scale-[1.05] h-[70px] bg-[#56b7d8]"
+                      : " h-[90px]")
+                  }
+                  style={{
+                    backgroundImage: isClicked ? `url(${load})` : "none",
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: "80px",
+                    animation: isClicked ? "zoomFade 2s infinite" : "none",
+                  }}
+                  onClick={handleClick}
+                >
+                  {isClicked && <h2 className="mt-[20%] text-[30px]">▶</h2>}
+                  {!isClicked && <h2 className="mt-[25%]">Analyze</h2>}
+                </div>
+              </div>
+              <div className="w-1/2 p-4 shadow-md overflow-y-scroll">
                 <div className="flex px-6">
                   <h2 className="text-2xl text-white font-bold mb-4">
                     {selectedStock.stockId.toUpperCase()}&nbsp;&nbsp;
@@ -232,14 +423,45 @@ function Home() {
                     Technicals
                   </h2>
                 </div>
+                <div className="flex px-6 mb-4">
+                  <label className="text-white mr-4">
+                    <input
+                      type="checkbox"
+                      name="MASimple@tv-basicstudies"
+                      onChange={handleIndicatorChange}
+                    />
+                    &nbsp;Simple Moving Average (SMA)
+                  </label>
+                  <label className="text-white mr-4">
+                    <input
+                      type="checkbox"
+                      name="RSI@tv-basicstudies"
+                      onChange={handleIndicatorChange}
+                    />
+                    &nbsp;Relative Strength Index (RSI)
+                  </label>
+                  <label className="text-white">
+                    <input
+                      type="checkbox"
+                      name="MACD@tv-basicstudies"
+                      onChange={handleIndicatorChange}
+                    />
+                    &nbsp;MACD
+                  </label>
+                </div>
+
+                {/* Display the stock chart with the selected indicators */}
                 <div className="h-[300px] mx-6">
-                  <StockChart stockId={selectedStock.stockId} />
+                  <StockChart
+                    stockId={selectedStock.stockId}
+                    indicators={indicators}
+                  />
                 </div>
               </div>
 
               {/* Right Pane (Blank) */}
-              <div className="w-1/2 p-4 shadow-md rounded bg-gray-100">
-                {/* This is the blank pane */}
+              <div className="w-1/2 p-4 shadow-md rounded bg-black bg-opacity-70">
+                <SplineComponent />
               </div>
             </div>
           </div>
