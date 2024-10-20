@@ -503,34 +503,34 @@ function Home() {
                 </div>
                 <div className="grid grid-cols-3 gap-4 px-6">
                   <Card
-                    label="Standard Deviation:"
+                    label="Current Assets:"
                     val={selectedStock.stdev.toFixed(4)}
-                    description="A measure of the price volatility."
+                    description="Things that can be turned into cash quick."
                   />
                   <Card
-                    label="Score:"
+                    label="Current Liabilites:"
                     val={selectedStock.score}
-                    description="A rating based on financial metrics."
+                    description="Money owed due within 1 year."
                   />
                   <Card
-                    label="Asset:"
+                    label="Shareholder Equity:"
                     val={selectedStock.asset}
-                    description="The total assets held by the company."
+                    description="A company's net worth."
                   />
                   <Card
-                    label="Growth:"
+                    label="Dividend Yield:"
                     val={`${selectedStock.growth}%`}
-                    description="The projected growth rate of the stock."
+                    description="Dividends per share over share price."
                   />
                   <Card
-                    label="Dividend:"
+                    label="Earnings Yield:"
                     val={`${selectedStock.dividend}%`}
-                    description="% of earnings distributed to shareholders."
+                    description="Earnings per share over share price."
                   />
                   <Card
-                    label="Overall:"
+                    label="Goodwill:" 
                     val={`${selectedStock.overall}%`}
-                    description="The overall rating of the stock."
+                    description="intangible asset from business acquisition"
                   />
                 </div>
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4 mt-6"></div>
