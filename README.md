@@ -1,4 +1,5 @@
 # SchwabBot
+![Picture of SchwabBot](./schwabbot.png)
 
 Our app empowers individuals by providing key metrics essential for stock valuation, from balance sheets to cash flow. It’s designed to educate users, helping them understand the financial indicators that drive investment decisions.
 
