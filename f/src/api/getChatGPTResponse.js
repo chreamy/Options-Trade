@@ -1,7 +1,7 @@
 const OpenAI = require("openai");
 require('dotenv').config({ path: '../../.env' });
 
-async function getResponse() { 
+async function getResponse(message) { 
     const key = process.env.OPENAI_API_KEY;
     const openai = new OpenAI({apiKey: key});
 
@@ -11,12 +11,14 @@ async function getResponse() {
             { role: "system", content: "You are a helpful assistant." },
             {
                 role: "user",
-                content: "Write a haiku about recursion in programming.",
+                content: message,
             },
         ],
     });
 
-    console.log(completion.choices[0].message);
+    return completion.choices[0].message;
 }
 
-getResponse();
+// getResponse("What is the P/E ratio?")
+//     .then(response => console.log(response))
+//     .catch(error => console.error("Error:", error));
