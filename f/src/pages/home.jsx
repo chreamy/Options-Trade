@@ -450,7 +450,7 @@ function Home() {
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4"></div>
                 <div className="flex px-6">
                   <h2 className="text-2xl text-white font-bold mb-4">
-                    Fundamentals
+                    Fundamental Analysis
                   </h2>
                 </div>
                 <div className="grid grid-cols-3 gap-4 px-6">
@@ -508,7 +508,7 @@ function Home() {
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4 mt-6"></div>
                 <div className="flex px-6">
                   <h2 className="text-2xl text-white font-bold mb-4">
-                    Technicals
+                    Technical Analysis
                   </h2>
                 </div>
                 <div className="flex px-6 mb-4">
@@ -544,6 +544,12 @@ function Home() {
                     stockId={selectedStock.stockId}
                     indicators={indicators}
                   />
+                </div>
+                <div className="bg-white h-[0.5px] w-auto mx-6 mb-4 mt-6"></div>
+                <div className="flex px-6">
+                  <h2 className="text-2xl text-white font-bold mb-4">
+                    Sentiment Analysis
+                  </h2>
                 </div>
               </div>
 

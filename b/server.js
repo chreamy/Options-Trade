@@ -87,6 +87,8 @@ async function getMetrics(symbol) {
               1000000) *
               100
           ) / 100,
+        ...calculated["calculated"][symbol.toLowerCase()],
+        ...reports[symbol.toLowerCase()],
       };
     });
     // Balance sheet change
