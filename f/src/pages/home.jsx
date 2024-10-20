@@ -302,7 +302,7 @@ function StockChart({ stockId, indicators }) {
   );
 }
 
-function ChatSystem({ textInput, setTextInput }) {
+function ChatSystem({ textInput, setTextInput, symbol }) {
   const [chatMessages, setChatMessages] = useState([
     {
       position: "left",
@@ -321,7 +321,7 @@ function ChatSystem({ textInput, setTextInput }) {
     ]);
 
     axios
-      .post("http://localhost:3001/api/message", { message: textInput })
+      .post("http://localhost:3001/api/message", { message: textInput, symbol: symbol })
       .then((res) => {
         setChatMessages((prevMessages) => [
           ...prevMessages,
@@ -747,7 +747,7 @@ function Home() {
               {/* Right Pane (Blank) */}
               <div className="w-1/2 p-4 shadow-md rounded bg-black bg-opacity-70">
                 <SplineComponent setTextInput={setTextInput} />
-                <ChatSystem textInput={textInput} setTextInput={setTextInput} />
+                <ChatSystem textInput={textInput} setTextInput={setTextInput} symbol={selectedStock.stockId.toUpperCase()} />
               </div>
             </div>
           </div>

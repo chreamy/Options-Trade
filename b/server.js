@@ -19,14 +19,14 @@ context = `
     to any financial questions. 
     `;
 
-async function getResponse(message) {
+async function getResponse(message, symbol) {
   const key = process.env.OPENAI_API_KEY;
   const openai = new OpenAI({ apiKey: key });
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
-      { role: "system", content: context },
+      { role: "system", content: context+" You are tasked with helping people analyze "+symbol+"." },
       {
         role: "user",
         content: message,
@@ -270,7 +270,8 @@ async function getReport(symbol) {
           "**Sentimental Analysis.** Based on the the following news, interpret if the company how more risks or opprtunity, what are some key events and whether now is a good time to invest.\n" +
           "new reports: " +
           newsResponse +
-          "\n\nNow generate a detailed eloborated professional report with three segments: fundamental, technical, and sentimental. Bold the numbers, try to quantify as much as possible, elaborate on the process of calculation and concreate specific data. Insert blank lines within each section and use better markdown formatting, don't put formulas.\n\nlastly, be extremely technical and conservative about the upsides of a stock."
+          "\n\nNow generate a detailed eloborated professional report with three segments: fundamental, technical, and sentimental. Bold the numbers, try to quantify as much as possible, elaborate on the process of calculation and concreate specific data. Insert blank lines within each section and use better markdown formatting, don't put formulas.\n\nlastly, be extremely technical and conservative about the upsides of a stock.",
+          symbol
       );
       return {
         report: report,
@@ -292,10 +293,10 @@ async function getNews(symbol, limit = 3) {
 }
 
 app.post("/api/message", async (req, res) => {
-  const { message } = req.body;
+  const { message, symbol } = req.body;
 
   try {
-    const response = await getResponse(message);
+    const response = await getResponse(message, symbol);
     res.json({ response });
     console.log(response);
   } catch (error) {
