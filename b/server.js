@@ -62,16 +62,27 @@ async function getMetrics(symbol) {
         return {
             'intrinsicValue': dataFromFMP[0]['dcf'],
             'marketValue': dataFromFMP[0]['Stock Price']
-        }
+        };
     });
     // Key metrics
-    const kme = await getDataFromFMP(`key-metrics/${symbol}, 'period=annual'`).then(dataFromFMP => {
-      return {
-          'earningsYield': dataFromFMP[0]['earningsYield'],
-          'dividendYield': dataFromFMP[0]['dividendYield']
-      }
+    const kme = await getDataFromFMP(`key-metrics-ttm/${symbol}`).then(dataFromFMP => {
+        return {
+            'earningsYield': dataFromFMP[0]['earningsYieldTTM'],
+            'dividendYield': dataFromFMP[0]['dividendYieldTTM']
+        };
     });
-    return {...bs, ...bsc, ...dcf, ...kme};
+    // Key ratios
+    const kra = await getDataFromFMP(`ratios-ttm/${symbol}`).then(dataFromFMP => {
+      return {
+          'returnOnAssets': dataFromFMP[0]['returnOnAssetsTTM'],
+          'returnOnEquity': dataFromFMP[0]['returnOnEquityTTM']
+      };
+    });
+    // Reporting by ChatGPT
+    getNews(symbol).then(newsResponse => {
+      getResponse("Prepare me a financial analysis using this data: "+{...bs, ...bsc, ...dcf, ...kme, ...kra})
+    });
+    return {...bs, ...bsc, ...dcf, ...kme, ...kra};
   }
   catch(error) {
     console.error(error);
