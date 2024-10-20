@@ -24,7 +24,7 @@ async function getResponse(message) {
   const openai = new OpenAI({ apiKey: key });
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: context },
       {
@@ -136,7 +136,6 @@ async function getMetrics(symbol) {
 
 async function getReport(symbol) {
   try {
-    // Balance sheet
     const bs = await getDataFromFMP(
       `balance-sheet-statement/${symbol}`,
       "period=annual"
@@ -178,7 +177,6 @@ async function getReport(symbol) {
           ) / 100,
       };
     });
-    // Balance sheet change
     const bsc = await getDataFromFMP(
       `balance-sheet-statement-growth/${symbol}`
     ).then((dataFromFMP) => {
@@ -250,18 +248,32 @@ async function getReport(symbol) {
       }
     );
     // Reporting by ChatGPT
-    const report = await getNews(symbol).then(async (newsResponse) => {
-      const fsReport = await getResponse(
-        "Prepare me a financial analysis using this data (in millions of dollars): " +
-          JSON.stringify({ ...bs, ...bsc, ...dcf, ...kme, ...kra })
+    const report = await getNews(symbol, 10).then(async (newsResponse) => {
+      const report = await getResponse(
+        "You are an expert in financial advising called Schwab Bot, today a client wants to learn about stock " +
+          symbol +
+          "'s potential risks and growth." +
+          "They want a detailed financial report encompassing three areas: Fundamental Analysis, Technical Analysis, and Sentimental Analysis. I will guide you through the creation of each section, make sure to respond in three sections: fundamental, technical, and sentimental. \n\n" +
+          "**Fundamental Analysis.** here is a financial statement of all the key metrics for the company, 'asset' is the asset based valuation based on BVPS, the latest dividend times 25 is the dividend based valuation, and 'growth' is the growth base valuation based on P/E Growth ratio. Compare three valuations and give analysis on overall fair price value of stock. \n" +
+          "financial statement: " +
+          JSON.stringify({
+            ...bs,
+            ...bsc,
+            ...dcf,
+            ...kme,
+            ...kra,
+            ...calculated["calculated"][symbol.toLowerCase()],
+            ...reports[symbol.toLowerCase()],
+          }) +
+          "\n\n" +
+          "**Technical Analysis.** Based on Indicators like mean reversion, macd, RSI. State that the current direction is more toward bullish or bearish and explain why.\n\n" +
+          "**Sentimental Analysis.** Based on the the following news, interpret if the company how more risks or opprtunity, what are some key events and whether now is a good time to invest.\n" +
+          "new reports: " +
+          newsResponse +
+          "\n\nNow generate a detailed eloborated professional report with three segments: fundamental, technical, and sentimental. Bold the numbers, try to quantify as much as possible, elaborate on the process of calculation and concreate specific data. Insert blank lines within each section and use better markdown formatting, don't put formulas.\n\nlastly, be extremely technical and conservative about the upsides of a stock."
       );
-      var newsPrompt = "Prepare me a summary of the articles";
-      for (var i = 0; i < newsResponse.length; i++) {
-        newsPrompt += " " + newsResponse[i]["url"];
-      }
-      const newsSummary = await getResponse(newsPrompt);
       return {
-        report: fsReport + "\n" + newsSummary,
+        report: report,
       };
     });
     return report;
@@ -270,12 +282,13 @@ async function getReport(symbol) {
   }
 }
 
-async function getNews(symbol) {
-  return await getDataFromFMP("stock_news", `tickers=${symbol}&limit=3`).then(
-    (dataFromFMP) => {
-      return dataFromFMP;
-    }
-  );
+async function getNews(symbol, limit = 3) {
+  return await getDataFromFMP(
+    "stock_news",
+    `tickers=${symbol}&limit=${limit}`
+  ).then((dataFromFMP) => {
+    return dataFromFMP;
+  });
 }
 
 app.post("/api/message", async (req, res) => {

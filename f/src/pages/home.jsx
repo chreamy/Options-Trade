@@ -12,7 +12,14 @@ import { CSSTransition } from "react-transition-group";
 import { Chatbox } from "../comp/chatbox";
 import axios from "axios";
 import FlappyBird from "../comp/bird";
+import ReactMarkdown from "react-markdown";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import remarkGfm from "remark-gfm";
+import { InlineMath, BlockMath } from "react-katex";
+import "katex/dist/katex.min.css";
 import { sp500 } from "./sp500";
+import FinancialChart from "../comp/chart";
 
 function Card({ label, val, description }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -189,6 +196,46 @@ function SplineComponent({ setTextInput }) {
   );
 }
 
+const NewsList = ({ news }) => {
+  return (
+    <div className="mx-6">
+      {news.map((article, index) => (
+        <a
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-200"
+        >
+          <div
+            key={index}
+            className="news-item p-4 mb-4 hover:scale-[1.03] hover:bg-[#ff1cc0] hover:bg-opacity-20 border rounded shadow-lg bg-[#171f2a] border-4 border-[#262e38] bg-opacity-80"
+          >
+            <h2 className="text-xl font-medium text-white mb-2">
+              {article.title}
+            </h2>
+            <div className="flex">
+              <div className="flex-1">
+                <p className="text-gray-300 mb-1">
+                  {new Date(article.publishedDate).toLocaleDateString()}
+                </p>
+                <p className="text-gray-300 text-[12px] mb-2">{article.text}</p>
+              </div>
+
+              <div className="flex-shrink-0 w-1/3 ml-4">
+                <img
+                  src={article.image}
+                  alt={article.title}
+                  className="w-full h-auto rounded"
+                />
+              </div>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  );
+};
+
 function StockChart({ stockId, indicators }) {
   const [isPopout, setIsPopout] = useState(false);
 
@@ -315,21 +362,34 @@ function Home() {
   const [textInput, setTextInput] = useState("");
   const [isClicked, setIsClicked] = useState(false);
   const [darkenOverlay, setDarkenOverlay] = useState(false);
+  const [markdownReport, setMarkdownReport] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = (ticker) => {
     setIsClicked(true);
+    axios
+      .post(`http://localhost:3001/api/fsdata/report`, { symbol: ticker })
+      .then((response) => {
+        setMarkdownReport(response.data.response.report);
+        setIsClicked(false);
+        setIsModalOpen(true);
+      });
   };
 
   const handleStockSelect = (ticker) => {
     axios
       .post(`http://localhost:3001/api/fsdata/metric`, { symbol: ticker })
-      .then((response) => {
-        console.log(response.data.response);
-        setSelectedStock({
-          stockId: ticker, // or just 'ticker,' in shorthand ES6
-          ...response.data.response, // assuming 'response.data.response' is an object with stock details
-        });
-        setIsClicked(false);
+      .then((response1) => {
+        axios
+          .post(`http://localhost:3001/api/fsdata/news`, { symbol: ticker })
+          .then((response2) => {
+            setSelectedStock({
+              stockId: ticker,
+              ...response1.data.response,
+              news: response2.data.response,
+            });
+            setIsClicked(false);
+          });
       })
       .catch((error) => {
         console.error("Error fetching stock details:", error);
@@ -395,10 +455,140 @@ function Home() {
           <FlappyBird />
         ) : selectedStock ? (
           <div className="absolute w-[85%] h-full z-1 shadow-md rounded">
+            {isModalOpen && (
+              <div className="fixed w-full inset-0 z-50 flex items-center justify-center">
+                {/* Overlay */}
+                <div
+                  className="fixed inset-0 bg-black opacity-50"
+                  onClick={() => setIsModalOpen(false)} // Close modal on background click
+                ></div>
+
+                {/* Modal Content */}
+                <div className="relative bg-gray-900 rounded-[20px] w-[55vw] h-[85vh] overflow-y-scroll  p-6 rounded-lg shadow-lg  z-10">
+                  {/* Close Button */}
+                  <button
+                    className="absolute top-2 right-2 text-gray-600"
+                    onClick={() => setIsModalOpen(false)} // Close modal on button click
+                  >
+                    X
+                  </button>
+
+                  {/* Render markdown */}
+                  <div className="markdown-container p-4 bg-gray-900 text-white rounded-md w-full">
+                    <ReactMarkdown
+                      className="prose prose-invert max-w-none"
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ node, ...props }) => (
+                          <h1
+                            className="text-3xl font-bold text-white mb-4"
+                            {...props}
+                          />
+                        ),
+                        h2: ({ node, ...props }) => (
+                          <h2
+                            className="text-2xl mt-[5px] font-semibold text-gray-300 mb-3"
+                            {...props}
+                          />
+                        ),
+                        h3: ({ node, ...props }) => (
+                          <h3
+                            className="text-xl font-semibold text-gray-400 mb-2"
+                            {...props}
+                          />
+                        ),
+                        h4: ({ node, ...props }) => (
+                          <h4
+                            className="text-lg font-medium text-gray-400 mb-2"
+                            {...props}
+                          />
+                        ),
+                        h5: ({ node, ...props }) => (
+                          <h5
+                            className="text-md font-medium text-gray-400 mb-1"
+                            {...props}
+                          />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p
+                            className="text-base text-gray-300 mb-4"
+                            {...props}
+                          />
+                        ),
+                        strong: ({ node, ...props }) => (
+                          <strong
+                            className="font-semibold text-white"
+                            {...props}
+                          />
+                        ),
+                        em: ({ node, ...props }) => (
+                          <em className="italic text-gray-400" {...props} />
+                        ),
+                        a: ({ node, ...props }) => (
+                          <a
+                            className="text-blue-400 underline hover:text-blue-500"
+                            {...props}
+                          />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul
+                            className="list-disc list-inside mb-4 text-gray-300"
+                            {...props}
+                          />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol
+                            className="list-decimal list-inside mb-4 text-gray-300"
+                            {...props}
+                          />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li className="ml-6 mb-2 text-base" {...props} />
+                        ),
+                        code({ className, children, ...rest }) {
+                          const match = /language-(\w+)/.exec(className || "");
+                          return match ? (
+                            <SyntaxHighlighter
+                              PreTag="div"
+                              language={match[1]}
+                              style={vs2015}
+                              {...rest}
+                            >
+                              {children}
+                            </SyntaxHighlighter>
+                          ) : (
+                            <code
+                              {...rest}
+                              className="bg-gray-700 text-gray-200 px-1 py-0.5 rounded"
+                            >
+                              {children}
+                            </code>
+                          );
+                        },
+                      }}
+                    >
+                      {markdownReport}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex w-full h-full">
-              <div className="absolute w-[100px] ml-[50%] translate-x-[-50px] h-full content-center place-self-center justify-self-center items-center flex text-center z-[10]">
-                <style>
-                  {`
+              <div className="w-1/2 p-4 shadow-md overflow-y-scroll">
+                <div className="flex px-6 items-center">
+                  <h2 className="text-[30px] mt-[8px] text-white font-bold mb-4">
+                    {selectedStock.stockId.toUpperCase()}&nbsp;&nbsp;
+                  </h2>
+                  <h2 className="text-[30px] mt-[8px] text-[#5eccdc] font-bold mb-4">
+                    ${selectedStock.price}
+                  </h2>
+                  <img
+                    className="ml-auto w-[50px] h-[50px] mb-[4px]"
+                    src={`https://financialmodelingprep.com/image-stock/${selectedStock.stockId.toUpperCase()}.png?apikey=90449c63998514b28abd312885a78779`}
+                  />
+                  <div className="w-[100px] h-full mt-[5px] ml-[10px] mb-[10px] flex text-center z-[10]">
+                    <style>
+                      {`
 @keyframes zoomFade {
   0% {
     transform: scale(1);
@@ -414,38 +604,28 @@ function Home() {
   }
 }
 `}
-                </style>
-                <div
-                  className={
-                    "text-white font-medium w-[83px] mt-[40px] rounded-[10px] mx-auto" +
-                    (!isClicked
-                      ? " border-white border-2 cursor-pointer hover:scale-[1.05] h-[70px] bg-[#56b7d8]"
-                      : " h-[90px]")
-                  }
-                  style={{
-                    backgroundImage: isClicked ? `url(${load})` : "none",
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: "80px",
-                    animation: isClicked ? "zoomFade 2s infinite" : "none",
-                  }}
-                  onClick={handleClick}
-                >
-                  {isClicked && <h2 className="mt-[20%] text-[30px]">▶</h2>}
-                  {!isClicked && <h2 className="mt-[25%]">Analyze</h2>}
-                </div>
-              </div>
-              <div className="w-1/2 p-4 shadow-md overflow-y-scroll">
-                <div className="flex px-6 items-center">
-                  <h2 className="text-[30px] mt-[8px] text-white font-bold mb-4">
-                    {selectedStock.stockId.toUpperCase()}&nbsp;&nbsp;
-                  </h2>
-                  <h2 className="text-[30px] mt-[8px] text-[#5eccdc] font-bold mb-4">
-                    ${selectedStock.price}
-                  </h2>
-                  <img
-                    className="ml-auto w-[50px] h-[50px] mb-[4px]"
-                    src={`https://financialmodelingprep.com/image-stock/${selectedStock.stockId.toUpperCase()}.png?apikey=90449c63998514b28abd312885a78779`}
-                  />
+                    </style>
+                    <div
+                      className={
+                        "text-white font-medium w-[83px] rounded-[10px] mx-auto" +
+                        (!isClicked
+                          ? " border-white border-2 cursor-pointer hover:scale-[1.05] h-[70px] bg-[#3b82f6]"
+                          : " h-[70px]")
+                      }
+                      style={{
+                        backgroundImage: isClicked ? `url(${load})` : "none",
+                        backgroundRepeat: "no-repeat",
+                        backgroundSize: "70px",
+                        animation: isClicked ? "zoomFade 2s infinite" : "none",
+                      }}
+                      onClick={() => handleClick(selectedStock.stockId)}
+                    >
+                      {isClicked && (
+                        <h2 className="mt-[15%] ml-[-10px] text-[30px]">▶</h2>
+                      )}
+                      {!isClicked && <h2 className="mt-[25%]">Analyze</h2>}
+                    </div>
+                  </div>
                 </div>
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4"></div>
                 <div className="flex px-6">
@@ -545,12 +725,23 @@ function Home() {
                     indicators={indicators}
                   />
                 </div>
+
+                <FinancialChart
+                  dividend={selectedStock.dividend}
+                  cfps={selectedStock.cfps}
+                  netmargin={selectedStock.netmargin}
+                  interestcoverage={selectedStock.interestcoverage}
+                  roic={selectedStock.roic}
+                  eps={selectedStock.eps}
+                />
+
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4 mt-6"></div>
                 <div className="flex px-6">
                   <h2 className="text-2xl text-white font-bold mb-4">
                     Sentiment Analysis
                   </h2>
                 </div>
+                <NewsList news={selectedStock.news} />
               </div>
 
               {/* Right Pane (Blank) */}
