@@ -49,11 +49,12 @@ function Card({ label, val, description }) {
   );
 }
 
-const SpotifyEmbed = ({ embedLink }) => {
+const SpotifyEmbed = ({ song }) => {
+  console.log(song);
   return (
     <div style={{ width: "100%", maxWidth: "600px", margin: "auto" }}>
       <iframe
-        src={embedLink}
+        src={song}
         width="100%"
         height="150"
         frameBorder="0"
@@ -63,7 +64,6 @@ const SpotifyEmbed = ({ embedLink }) => {
     </div>
   );
 };
-
 const callWebhook = () => {
   fetch("https://hooks.spline.design/aa-LjQQwAPY", {
     method: "POST",
@@ -400,6 +400,9 @@ function Home() {
       text: "Hello, I am Schwab Bot. How can I assist you?",
     },
   ]);
+
+  // Select a random song once when the component is mounted
+
   const audioRef = useRef(null);
 
   const playAudio = () => {
@@ -443,8 +446,16 @@ function Home() {
     "https://open.spotify.com/embed/track/2dJC7TpwGn8b2ricS0nnZV?utm_source=generator",
   ];
 
+  // Select a random song once when the component is mounted
+  const [selectedSong, setSelectedSong] = useState(
+    spotifyEmbedLinks[Math.floor(Math.random() * spotifyEmbedLinks.length)]
+  );
+
   const handleStockSelect = (ticker) => {
     setReport(null);
+    setSelectedSong(
+      spotifyEmbedLinks[Math.floor(Math.random() * spotifyEmbedLinks.length)]
+    );
     setChatMessages([
       {
         position: "left",
@@ -838,13 +849,7 @@ function Home() {
                 />
                 <div className="flex justify-center">
                   <div className="mx-[10%] mt-[30px] w-full h-[150px]">
-                    <SpotifyEmbed
-                      embedLink={
-                        spotifyEmbedLinks[
-                          Math.floor(Math.random() * spotifyEmbedLinks.length)
-                        ]
-                      }
-                    />
+                    <SpotifyEmbed song={selectedSong} />
                   </div>
                 </div>
               </div>
