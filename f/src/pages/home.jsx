@@ -323,7 +323,7 @@ function ChatSystem({
     ]);
 
     axios
-      .post("http://localhost:3001/api/message", {
+      .post("https://options-trade.onrender.com/api/message", {
         message:
           "You are a financial advisor, this is the question your client asks you, you want to give a short and concise answer without markdown: '" +
           textInput +
@@ -388,7 +388,9 @@ function Home() {
   const handleClick = (ticker) => {
     setIsClicked(true);
     axios
-      .post(`http://localhost:3001/api/fsdata/report`, { symbol: ticker })
+      .post(`https://options-trade.onrender.com/api/fsdata/report`, {
+        symbol: ticker,
+      })
       .then((response) => {
         setMarkdownReport(response.data.response.res);
         setReport(response.data.response);
@@ -407,10 +409,14 @@ function Home() {
       },
     ]);
     axios
-      .post(`http://localhost:3001/api/fsdata/metric`, { symbol: ticker })
+      .post(`https://options-trade.onrender.com/api/fsdata/metric`, {
+        symbol: ticker,
+      })
       .then((response1) => {
         axios
-          .post(`http://localhost:3001/api/fsdata/news`, { symbol: ticker })
+          .post(`https://options-trade.onrender.com/api/fsdata/news`, {
+            symbol: ticker,
+          })
           .then((response2) => {
             setSelectedStock({
               stockId: ticker,
