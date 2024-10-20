@@ -1,7 +1,3 @@
-Sure! To create an effective README for your GitHub repository, I'll need some basic details about your project. Here's a template you can use, and feel free to fill in the specifics where indicated:
-
----
-
 # SchwabBot
 
 Our app empowers individuals by providing key metrics essential for stock valuation, from balance sheets to cash flow. It’s designed to educate users, helping them understand the financial indicators that drive investment decisions.
