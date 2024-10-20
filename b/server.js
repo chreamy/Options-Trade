@@ -41,13 +41,13 @@ async function getMetrics(symbol) {
     // Balance sheet
     const bs = await getDataFromFMP(`balance-sheet-statement/${symbol}`, 'period=annual').then(dataFromFMP => {
         return {
-            'totalAssets': dataFromFMP[0]['totalCurrentAssets'] + dataFromFMP[0]['totalNonCurrentAssets'],
-            'totalCurrentAssets': dataFromFMP[0]['totalCurrentAssets'],
-            'totalLiabilities': dataFromFMP[0]['totalCurrentLiabilities'] + dataFromFMP[0]['totalNonCurrentLiabilities'],
-            'totalCurrentLiabilities': dataFromFMP[0]['totalCurrentLiabilities'],
-            'totalStockholdersEquity': dataFromFMP[0]['totalStockholdersEquity'],
-            'goodwill': dataFromFMP[0]['totalCurrentLiabilities'],
-            'workingCapital': dataFromFMP[0]['totalCurrentAssets'] - dataFromFMP[0]['totalCurrentLiabilities']
+            'totalAssets': Math.round((dataFromFMP[0]['totalCurrentAssets'] + dataFromFMP[0]['totalNonCurrentAssets'])/1000000 * 100)/100,
+            'totalCurrentAssets': Math.round(dataFromFMP[0]['totalCurrentAssets']/1000000 * 100)/100,
+            'totalLiabilities': Math.round((dataFromFMP[0]['totalCurrentLiabilities'] + dataFromFMP[0]['totalNonCurrentLiabilities'])/1000000 * 100)/100,
+            'totalCurrentLiabilities': Math.round(dataFromFMP[0]['totalCurrentLiabilities']/1000000 * 100)/100,
+            'totalStockholdersEquity': Math.round(dataFromFMP[0]['totalStockholdersEquity']/1000000 * 100)/100,
+            'goodwill': Math.round(dataFromFMP[0]['totalCurrentLiabilities']/1000000 * 100)/100,
+            'workingCapital': Math.round((dataFromFMP[0]['totalCurrentAssets'] - dataFromFMP[0]['totalCurrentLiabilities'])/1000000 * 100)/100
         };
     });
     // Balance sheet change
@@ -80,7 +80,7 @@ async function getMetrics(symbol) {
     });
     // Reporting by ChatGPT
     const report = await getNews(symbol).then(async newsResponse => {
-      const fsReport = await getResponse("Prepare me a financial analysis using this data: "+JSON.stringify({...bs, ...bsc, ...dcf, ...kme, ...kra}));
+      const fsReport = await getResponse("Prepare me a financial analysis using this data (in millions of dollars): "+JSON.stringify({...bs, ...bsc, ...dcf, ...kme, ...kra}));
       const newsSummary = await getResponse("Prepare me a summary of the articles "+newsResponse[0]['url']+" "+newsResponse[1]['url']+" "+newsResponse[2]['url']);
       return {
         'report': fsReport+'\n'+newsSummary
