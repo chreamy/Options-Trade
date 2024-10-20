@@ -64,7 +64,14 @@ async function getMetrics(symbol) {
             'marketValue': dataFromFMP[0]['Stock Price']
         }
     });
-    return {...bs, ...bsc, ...dcf};
+    // Key metrics
+    const kme = await getDataFromFMP(`key-metrics/${symbol}, 'period=annual'`).then(dataFromFMP => {
+      return {
+          'earningsYield': dataFromFMP[0]['earningsYield'],
+          'dividendYield': dataFromFMP[0]['dividendYield']
+      }
+    });
+    return {...bs, ...bsc, ...dcf, ...kme};
   }
   catch(error) {
     console.error(error);
