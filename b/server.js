@@ -79,10 +79,14 @@ async function getMetrics(symbol) {
       };
     });
     // Reporting by ChatGPT
-    getNews(symbol).then(newsResponse => {
-      getResponse("Prepare me a financial analysis using this data: "+{...bs, ...bsc, ...dcf, ...kme, ...kra})
+    const report = await getNews(symbol).then(async newsResponse => {
+      const fsReport = await getResponse("Prepare me a financial analysis using this data: "+JSON.stringify({...bs, ...bsc, ...dcf, ...kme, ...kra}));
+      const newsSummary = await getResponse("Prepare me a summary of the articles "+newsResponse[0]['url']+" "+newsResponse[1]['url']+" "+newsResponse[2]['url']);
+      return {
+        'report': fsReport+'\n'+newsSummary
+      };
     });
-    return {...bs, ...bsc, ...dcf, ...kme, ...kra};
+    return {...bs, ...bsc, ...dcf, ...kme, ...kra, ...report};
   }
   catch(error) {
     console.error(error);
