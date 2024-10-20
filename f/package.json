@@ -8,9 +8,12 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.7",
+    "crypto-es": "^2.1.0",
     "dotenv": "^16.4.5",
     "mathjs": "^13.2.0",
     "openai": "^4.68.1",
+    "os": "^0.1.2",
+    "path": "^0.12.7",
     "react": "^18.3.1",
     "react-card-flip": "^1.2.3",
     "react-dom": "^18.3.1",
@@ -47,5 +50,8 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14"
+  },
+  "browser": {
+    "crypto": false
   }
 }

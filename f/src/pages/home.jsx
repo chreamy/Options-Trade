@@ -4,6 +4,8 @@ import load from "../assets/load.gif";
 import ReactCardFlip from "react-card-flip";
 import Spline from "@splinetool/react-spline";
 import { CSSTransition } from "react-transition-group";
+import { Chatbox } from "../comp/chatbox";
+import axios from "axios";
 
 function Card({ label, val, description }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -194,6 +196,58 @@ function StockChart({ stockId, indicators }) {
         </div>
       )}
     </>
+  );
+}
+
+function ChatSystem() {
+  const [chatMessages, setChatMessages] = useState([
+    {
+      position: "left",
+      title: "Schwab Bot",
+      text: "Hello, I am Schwab Bot. How can I assist you?",
+    },
+  ]);
+  const [textInput, setTextInput] = useState("");
+
+  const handleSendMessage = () => {
+    if (!textInput) return;
+
+    // Add user message
+    setChatMessages((prevMessages) => [
+      ...prevMessages,
+      { position: "right", title: "User", text: textInput },
+    ]);
+
+    axios
+      .post("http://localhost:3001/api/message", { message: textInput })
+      .then((res) => {
+        setChatMessages((prevMessages) => [
+          ...prevMessages,
+          { position: "left", title: "Schwab Bot", text: res.data.response },
+        ]);
+        setTextInput("");
+      });
+  };
+
+  return (
+    <div className="bg-black w-[80%] mx-auto flex-col h-[50vh]">
+      <Chatbox messages={chatMessages} />
+      <div className="flex w-full h-[50px]">
+        <input
+          className="w-[70%]"
+          type="text"
+          value={textInput}
+          onChange={(e) => setTextInput(e.target.value)}
+          placeholder="Type your message..."
+        />
+        <button
+          className="w-[30%] bg-black text-white"
+          onClick={handleSendMessage}
+        >
+          Send
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -462,6 +516,7 @@ function Home() {
               {/* Right Pane (Blank) */}
               <div className="w-1/2 p-4 shadow-md rounded bg-black bg-opacity-70">
                 <SplineComponent />
+                <ChatSystem />
               </div>
             </div>
           </div>
