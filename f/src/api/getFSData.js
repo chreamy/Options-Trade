@@ -1,5 +1,3 @@
-
-
 function getDataFromFMP(type, arguments) { 
     const API_KEY = 'YOUR_API_KEY';
     const url = "https://financialmodelingprep.com/api/v3/${type}?apikey={API_KEY}${arguments}";
