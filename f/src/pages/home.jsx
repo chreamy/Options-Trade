@@ -837,7 +837,7 @@ function Home() {
               </div>
 
               {/* Right Pane (Blank) */}
-              <div className="w-1/2 p-4 shadow-md rounded bg-black bg-opacity-70">
+              <div className="w-1/2 p-4 overflow-y-hidden shadow-md rounded bg-black bg-opacity-70">
                 <SplineComponent setTextInput={setTextInput} />
                 <ChatSystem
                   textInput={textInput}
