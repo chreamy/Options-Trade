@@ -302,26 +302,35 @@ function StockChart({ stockId, indicators }) {
   );
 }
 
-function ChatSystem({ textInput, setTextInput, symbol }) {
-  const [chatMessages, setChatMessages] = useState([
-    {
-      position: "left",
-      title: "Schwab Bot",
-      text: "Hello, I am Schwab Bot. How can I assist you?",
-    },
-  ]);
-
-  const handleSendMessage = () => {
+function ChatSystem({
+  textInput,
+  setTextInput,
+  symbol,
+  report,
+  chatMessages,
+  setChatMessages,
+}) {
+  const handleSendMessage = (report) => {
     if (!textInput) return;
+    if (!report) {
+      alert("Please Analyze Stock First.");
+      return;
+    }
 
-    // Add user message
     setChatMessages((prevMessages) => [
       ...prevMessages,
       { position: "right", title: "User", text: textInput },
     ]);
 
     axios
-      .post("http://localhost:3001/api/message", { message: textInput, symbol: symbol })
+      .post("http://localhost:3001/api/message", {
+        message:
+          "You are a financial advisor, this is the question your client asks you, you want to give a short and concise answer without markdown: '" +
+          textInput +
+          "'. Now asnwer the question based on the raw data below: \n" +
+          JSON.stringify(report),
+        symbol: symbol,
+      })
       .then((res) => {
         setChatMessages((prevMessages) => [
           ...prevMessages,
@@ -344,7 +353,10 @@ function ChatSystem({ textInput, setTextInput, symbol }) {
         />
         <button
           className="w-[30%] bg-black text-white rounded-r-lg"
-          onClick={handleSendMessage}
+          onClick={() => {
+            console.log(report);
+            handleSendMessage(report);
+          }}
         >
           Send
         </button>
@@ -363,20 +375,37 @@ function Home() {
   const [isClicked, setIsClicked] = useState(false);
   const [darkenOverlay, setDarkenOverlay] = useState(false);
   const [markdownReport, setMarkdownReport] = useState("");
+  const [report, setReport] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    {
+      position: "left",
+      title: "Schwab Bot",
+      text: "Hello, I am Schwab Bot. How can I assist you?",
+    },
+  ]);
 
   const handleClick = (ticker) => {
     setIsClicked(true);
     axios
       .post(`http://localhost:3001/api/fsdata/report`, { symbol: ticker })
       .then((response) => {
-        setMarkdownReport(response.data.response.report);
+        setMarkdownReport(response.data.response.res);
+        setReport(response.data.response);
         setIsClicked(false);
         setIsModalOpen(true);
       });
   };
 
   const handleStockSelect = (ticker) => {
+    setReport(null);
+    setChatMessages([
+      {
+        position: "left",
+        title: "Schwab Bot",
+        text: "Hello, I am Schwab Bot. How can I assist you?",
+      },
+    ]);
     axios
       .post(`http://localhost:3001/api/fsdata/metric`, { symbol: ticker })
       .then((response1) => {
@@ -388,6 +417,7 @@ function Home() {
               ...response1.data.response,
               news: response2.data.response,
             });
+
             setIsClicked(false);
           });
       })
@@ -666,7 +696,7 @@ function Home() {
                   />
                   <Card
                     label="Dividend:"
-                    val={`${selectedStock.dividend[9]}%`}
+                    val={`${(selectedStock.dividend[9] || 0).toFixed(4)}%`}
                     description="% of earnings distributed to shareholders."
                   />
                   <Card
@@ -747,7 +777,14 @@ function Home() {
               {/* Right Pane (Blank) */}
               <div className="w-1/2 p-4 shadow-md rounded bg-black bg-opacity-70">
                 <SplineComponent setTextInput={setTextInput} />
-                <ChatSystem textInput={textInput} setTextInput={setTextInput} symbol={selectedStock.stockId.toUpperCase()} />
+                <ChatSystem
+                  textInput={textInput}
+                  setTextInput={setTextInput}
+                  symbol={selectedStock.stockId.toUpperCase()}
+                  report={report}
+                  chatMessages={chatMessages}
+                  setChatMessages={setChatMessages}
+                />
               </div>
             </div>
           </div>

@@ -26,7 +26,14 @@ async function getResponse(message, symbol) {
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
-      { role: "system", content: context+" You are tasked with helping people analyze "+symbol+"." },
+      {
+        role: "system",
+        content:
+          context +
+          " You are tasked with helping people analyze " +
+          symbol +
+          ".",
+      },
       {
         role: "user",
         content: message,
@@ -248,36 +255,58 @@ async function getReport(symbol) {
       }
     );
     // Reporting by ChatGPT
-    const report = await getNews(symbol, 10).then(async (newsResponse) => {
-      const report = await getResponse(
-        "You are an expert in financial advising called Schwab Bot, today a client wants to learn about stock " +
-          symbol +
-          "'s potential risks and growth." +
-          "They want a detailed financial report encompassing three areas: Fundamental Analysis, Technical Analysis, and Sentimental Analysis. I will guide you through the creation of each section, make sure to respond in three sections: fundamental, technical, and sentimental. \n\n" +
-          "**Fundamental Analysis.** here is a financial statement of all the key metrics for the company, 'asset' is the asset based valuation based on BVPS, the latest dividend times 25 is the dividend based valuation, and 'growth' is the growth base valuation based on P/E Growth ratio. Compare three valuations and give analysis on overall fair price value of stock. \n" +
-          "financial statement: " +
-          JSON.stringify({
-            ...bs,
-            ...bsc,
-            ...dcf,
-            ...kme,
-            ...kra,
-            ...calculated["calculated"][symbol.toLowerCase()],
-            ...reports[symbol.toLowerCase()],
-          }) +
-          "\n\n" +
-          "**Technical Analysis.** Based on Indicators like mean reversion, macd, RSI. State that the current direction is more toward bullish or bearish and explain why.\n\n" +
-          "**Sentimental Analysis.** Based on the the following news, interpret if the company how more risks or opprtunity, what are some key events and whether now is a good time to invest.\n" +
-          "new reports: " +
-          newsResponse +
-          "\n\nNow generate a detailed eloborated professional report with three segments: fundamental, technical, and sentimental. Bold the numbers, try to quantify as much as possible, elaborate on the process of calculation and concreate specific data. Insert blank lines within each section and use better markdown formatting, don't put formulas.\n\nlastly, be extremely technical and conservative about the upsides of a stock.",
-          symbol
-      );
-      return {
-        report: report,
-      };
+    const news = await getNews(symbol, 10);
+    const res = await getResponse(
+      "You are an expert in financial advising called Schwab Bot, today a client wants to learn about stock " +
+        symbol +
+        "'s potential risks and growth." +
+        "They want a detailed financial report encompassing three areas: Fundamental Analysis, Technical Analysis, and Sentimental Analysis. I will guide you through the creation of each section, make sure to respond in three sections: fundamental, technical, and sentimental. \n\n" +
+        "**Fundamental Analysis.** here is a financial statement of all the key metrics for the company, 'asset' is the asset based valuation based on BVPS, the latest dividend times 25 is the dividend based valuation, and 'growth' is the growth base valuation based on P/E Growth ratio. Compare three valuations and give analysis on overall fair price value of stock. \n" +
+        "financial statement: " +
+        JSON.stringify({
+          ...bs,
+          ...bsc,
+          ...dcf,
+          ...kme,
+          ...kra,
+          ...calculated["calculated"][symbol.toLowerCase()],
+          ...reports[symbol.toLowerCase()],
+        }) +
+        "\n\n" +
+        "**Technical Analysis.** Based on Indicators like mean reversion, macd, RSI. State that the current direction is more toward bullish or bearish and explain why.\n\n" +
+        "**Sentimental Analysis.** Based on the the following news, interpret if the company how more risks or opprtunity, what are some key events and whether now is a good time to invest.\n" +
+        "new reports: " +
+        news +
+        "\n\nNow generate a detailed eloborated professional report with three segments: fundamental, technical, and sentimental. Bold the numbers, try to quantify as much as possible, elaborate on the process of calculation and concreate specific data. Insert blank lines within each section and use better markdown formatting, don't put formulas.\n\nlastly, be extremely technical and conservative about the upsides of a stock.",
+      symbol
+    );
+
+    console.log({
+      res,
+      news,
+      financial: {
+        ...bs,
+        ...bsc,
+        ...dcf,
+        ...kme,
+        ...kra,
+        ...calculated["calculated"][symbol.toLowerCase()],
+        ...reports[symbol.toLowerCase()],
+      },
     });
-    return report;
+    return {
+      res,
+      news,
+      financial: {
+        ...bs,
+        ...bsc,
+        ...dcf,
+        ...kme,
+        ...kra,
+        ...calculated["calculated"][symbol.toLowerCase()],
+        ...reports[symbol.toLowerCase()],
+      },
+    };
   } catch (error) {
     console.error(error);
   }
