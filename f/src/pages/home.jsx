@@ -429,8 +429,19 @@ function Home() {
       });
   };
 
-  const spotifyEmbedLink =
-    "https://open.spotify.com/embed/track/1zcqI6tKT48rjI1GJtR118?utm_source=generator";
+  const spotifyEmbedLinks = [
+    "https://open.spotify.com/embed/track/1zcqI6tKT48rjI1GJtR118?utm_source=generator",
+    "https://open.spotify.com/embed/track/3z3IYrnrxrwRDJMOeHgJAZ?utm_source=generator",
+    "https://open.spotify.com/embed/track/1nHQdojhIIJmYgCIemppW9?utm_source=generator",
+    "https://open.spotify.com/embed/track/0X214IiDWGaV68nzAnyGZW?utm_source=generator",
+    "https://open.spotify.com/embed/track/2R5BDsDyj86UPqOOSbAPro?utm_source=generator",
+    "https://open.spotify.com/embed/track/3kubgykmOVjRMK1hmgYsG6?utm_source=generator",
+    "https://open.spotify.com/embed/track/6KbV2Dp0Bb4ZbRp2Wa2jxN?utm_source=generator",
+    "https://open.spotify.com/embed/track/2fKGBZxV6vX5SCYCOYsp1z?utm_source=generator",
+    "https://open.spotify.com/embed/track/3WBRfkOozHEsG0hbrBzwlm?utm_source=generator",
+    "https://open.spotify.com/embed/track/09QiZTAHwVA5h4pXJckLvr?utm_source=generator",
+    "https://open.spotify.com/embed/track/2dJC7TpwGn8b2ricS0nnZV?utm_source=generator",
+  ];
 
   const handleStockSelect = (ticker) => {
     setReport(null);
@@ -827,7 +838,13 @@ function Home() {
                 />
                 <div className="flex justify-center">
                   <div className="mx-[10%] mt-[30px] w-full h-[150px]">
-                    <SpotifyEmbed embedLink={spotifyEmbedLink} />
+                    <SpotifyEmbed
+                      embedLink={
+                        spotifyEmbedLinks[
+                          Math.floor(Math.random() * spotifyEmbedLinks.length)
+                        ]
+                      }
+                    />
                   </div>
                 </div>
               </div>
