@@ -66,6 +66,12 @@ async function getMetrics(symbol) {
   return {...bs, ...bsc, ...dcf};
 }
 
+async function getNews(symbol) {
+  return await getDataFromFMP('stock_news', `ticker=${symbol}&limit=3`).then(dataFromFMP => {
+    return dataFromFMP;
+  });
+}
+
 app.post("/api/message", async (req, res) => {
   const { message } = req.body;
 
@@ -81,10 +87,25 @@ app.post("/api/message", async (req, res) => {
   }
 });
 
-app.post("/api/fsdata", async (req, res) => {
+app.post("/api/fsdata/metric", async (req, res) => {
   const { symbol } = req.body;
   try {
       getMetrics(symbol).then(response => {
+        res.json({ response });
+        console.log(response);
+      });
+  } catch (error) {
+      console.error(error);
+      res
+      .status(500)
+      .json({ error: "An error occurred while processing your request." });
+  }
+});
+
+app.post("/api/fsdata/news", async (req, res) => {
+  const { symbol } = req.body;
+  try {
+      getNews(symbol).then(response => {
         res.json({ response });
         console.log(response);
       });
