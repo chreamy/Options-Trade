@@ -30,7 +30,7 @@ export const Chatbox = ({ messages }) => {
   return (
     <div
       ref={messageListReference}
-      className="mt-5 p-5 h-[100%] overflow-y-auto shadow-lg rounded-[10px] relative bg-white"
+      className="mt-5 p-5 h-[90%] overflow-y-auto shadow-lg rounded-[10px] relative bg-white"
       style={{
         borderRadius: "10px",
         background:

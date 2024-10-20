@@ -49,6 +49,21 @@ function Card({ label, val, description }) {
   );
 }
 
+const SpotifyEmbed = ({ embedLink }) => {
+  return (
+    <div style={{ width: "100%", maxWidth: "600px", margin: "auto" }}>
+      <iframe
+        src={embedLink}
+        width="100%"
+        height="150"
+        frameBorder="0"
+        allow="encrypted-media"
+        allowFullScreen={false}
+      ></iframe>
+    </div>
+  );
+};
+
 const callWebhook = () => {
   fetch("https://hooks.spline.design/aa-LjQQwAPY", {
     method: "POST",
@@ -325,10 +340,11 @@ function ChatSystem({
     axios
       .post("https://options-trade.onrender.com/api/message", {
         message:
-          "You are a financial advisor, this is the question your client asks you, you want to give a short and concise answer without markdown: '" +
+          "You are a financial advisor, this is the question your client asks you: '" +
           textInput +
-          "'. Now asnwer the question based on the raw data below: \n" +
-          JSON.stringify(report),
+          "', you want to give a short and concise response without markdown. Now asnwer the question based on the raw data below: \n" +
+          JSON.stringify(report) +
+          "\n\nIf question is unrelated to finance don't care about the data.",
         symbol: symbol,
       })
       .then((res) => {
@@ -341,7 +357,7 @@ function ChatSystem({
   };
 
   return (
-    <div className="w-[80%] mx-auto flex-col h-[50vh]">
+    <div className="w-[80%] mx-auto mt-[-60px] flex-col h-[50vh]">
       <Chatbox messages={chatMessages} />
       <div className="flex w-full h-[50px] rounded-lg border-2">
         <input
@@ -384,8 +400,22 @@ function Home() {
       text: "Hello, I am Schwab Bot. How can I assist you?",
     },
   ]);
+  const audioRef = useRef(null);
+
+  const playAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.play();
+
+      // Stop playing after 3 seconds
+      setTimeout(() => {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0; // Reset to start
+      }, 3000); // Play for 3 seconds (3000 milliseconds)
+    }
+  };
 
   const handleClick = (ticker) => {
+    playAudio();
     setIsClicked(true);
     axios
       .post(`https://options-trade.onrender.com/api/fsdata/report`, {
@@ -398,6 +428,9 @@ function Home() {
         setIsModalOpen(true);
       });
   };
+
+  const spotifyEmbedLink =
+    "https://open.spotify.com/embed/track/1zcqI6tKT48rjI1GJtR118?utm_source=generator";
 
   const handleStockSelect = (ticker) => {
     setReport(null);
@@ -661,6 +694,7 @@ function Home() {
                       )}
                       {!isClicked && <h2 className="mt-[25%]">Analyze</h2>}
                     </div>
+                    <audio ref={audioRef} src="/beep.mp3" />
                   </div>
                 </div>
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4"></div>
@@ -791,6 +825,11 @@ function Home() {
                   chatMessages={chatMessages}
                   setChatMessages={setChatMessages}
                 />
+                <div className="flex justify-center">
+                  <div className="mx-[10%] mt-[30px] w-full h-[150px]">
+                    <SpotifyEmbed embedLink={spotifyEmbedLink} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
