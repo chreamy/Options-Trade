@@ -87,8 +87,6 @@ async function getMetrics(symbol) {
               1000000) *
               100
           ) / 100,
-        ...calculated["calculated"][symbol.toLowerCase()],
-        ...reports[symbol.toLowerCase()],
       };
     });
     // Balance sheet change
@@ -128,25 +126,143 @@ async function getMetrics(symbol) {
         };
       }
     );
+    return { ...bs, ...bsc, ...dcf, ...kme, ...kra };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function getReport(symbol) {
+  try {
+    // Balance sheet
+    const bs = await getDataFromFMP(
+      `balance-sheet-statement/${symbol}`,
+      "period=annual"
+    ).then((dataFromFMP) => {
+      return {
+        totalAssets:
+          Math.round(
+            ((dataFromFMP[0]["totalCurrentAssets"] +
+              dataFromFMP[0]["totalNonCurrentAssets"]) /
+              1000000) *
+              100
+          ) / 100,
+        totalCurrentAssets:
+          Math.round((dataFromFMP[0]["totalCurrentAssets"] / 1000000) * 100) /
+          100,
+        totalLiabilities:
+          Math.round(
+            ((dataFromFMP[0]["totalCurrentLiabilities"] +
+              dataFromFMP[0]["totalNonCurrentLiabilities"]) /
+              1000000) *
+              100
+          ) / 100,
+        totalCurrentLiabilities:
+          Math.round(
+            (dataFromFMP[0]["totalCurrentLiabilities"] / 1000000) * 100
+          ) / 100,
+        totalStockholdersEquity:
+          Math.round(
+            (dataFromFMP[0]["totalStockholdersEquity"] / 1000000) * 100
+          ) / 100,
+        goodwill:
+          Math.round((dataFromFMP[0]["goodwill"] / 1000000) * 100) / 100,
+        workingCapital:
+          Math.round(
+            ((dataFromFMP[0]["totalCurrentAssets"] -
+              dataFromFMP[0]["totalCurrentLiabilities"]) /
+              1000000) *
+              100
+          ) / 100,
+      };
+    });
+    // Balance sheet change
+    const bsc = await getDataFromFMP(
+      `balance-sheet-statement-growth/${symbol}`
+    ).then((dataFromFMP) => {
+      return {
+        growthTotalCurrentAssets: dataFromFMP[0]["growthTotalCurrentAssets"],
+        growthTotalCurrentLiabilities:
+          dataFromFMP[0]["growthTotalCurrentLiabilities"],
+      };
+    });
+    // DCF
+    const dcf = await getDataFromFMP(`discounted-cash-flow/${symbol}`).then(
+      (dataFromFMP) => {
+        return {
+          intrinsicValue: dataFromFMP[0]["dcf"],
+          marketValue: dataFromFMP[0]["Stock Price"],
+        };
+      }
+    );
+    // Key metrics
+    const kme = await getDataFromFMP(`key-metrics-ttm/${symbol}`).then(
+      (dataFromFMP) => {
+        return {
+          earningsYield: dataFromFMP[0]["earningsYieldTTM"],
+          dividendYield: dataFromFMP[0]["dividendYieldTTM"],
+        };
+      }
+    );
+    // Key ratios
+    const kra = await getDataFromFMP(`ratios-ttm/${symbol}`).then(
+      (dataFromFMP) => {
+        return {
+          totalAssets:
+            Math.round(
+              ((dataFromFMP[0]["totalCurrentAssets"] +
+                dataFromFMP[0]["totalNonCurrentAssets"]) /
+                1000000) *
+                100
+            ) / 100,
+          totalCurrentAssets:
+            Math.round((dataFromFMP[0]["totalCurrentAssets"] / 1000000) * 100) /
+            100,
+          totalLiabilities:
+            Math.round(
+              ((dataFromFMP[0]["totalCurrentLiabilities"] +
+                dataFromFMP[0]["totalNonCurrentLiabilities"]) /
+                1000000) *
+                100
+            ) / 100,
+          totalCurrentLiabilities:
+            Math.round(
+              (dataFromFMP[0]["totalCurrentLiabilities"] / 1000000) * 100
+            ) / 100,
+          totalStockholdersEquity:
+            Math.round(
+              (dataFromFMP[0]["totalStockholdersEquity"] / 1000000) * 100
+            ) / 100,
+          goodwill:
+            Math.round((dataFromFMP[0]["goodwill"] / 1000000) * 100) / 100,
+          workingCapital:
+            Math.round(
+              ((dataFromFMP[0]["totalCurrentAssets"] -
+                dataFromFMP[0]["totalCurrentLiabilities"]) /
+                1000000) *
+                100
+            ) / 100,
+          ...calculated["calculated"][symbol.toLowerCase()],
+          ...reports[symbol.toLowerCase()],
+        };
+      }
+    );
     // Reporting by ChatGPT
     const report = await getNews(symbol).then(async (newsResponse) => {
       const fsReport = await getResponse(
         "Prepare me a financial analysis using this data (in millions of dollars): " +
           JSON.stringify({ ...bs, ...bsc, ...dcf, ...kme, ...kra })
       );
-      const newsSummary = await getResponse(
-        "Prepare me a summary of the articles " +
-          newsResponse[0]["url"] +
-          " " +
-          newsResponse[1]["url"] +
-          " " +
-          newsResponse[2]["url"]
-      );
+      var newsPrompt = "Prepare me a summary of the articles";
+      for (var i = 0; i < newsResponse.length; i++) {
+        newsPrompt += " " + newsResponse[i]["url"];
+      }
+      const newsSummary = await getResponse(newsPrompt);
       return {
         report: fsReport + "\n" + newsSummary,
       };
     });
-    return { ...bs, ...bsc, ...dcf, ...kme, ...kra, ...report };
+    return report;
   } catch (error) {
     console.error(error);
   }
@@ -194,6 +310,21 @@ app.post("/api/fsdata/news", async (req, res) => {
   const { symbol } = req.body;
   try {
     getNews(symbol).then((response) => {
+      res.json({ response });
+      console.log(response);
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while processing your request." });
+  }
+});
+
+app.post("/api/fsdata/report", async (req, res) => {
+  const { symbol } = req.body;
+  try {
+    getReport(symbol).then((response) => {
       res.json({ response });
       console.log(response);
     });
