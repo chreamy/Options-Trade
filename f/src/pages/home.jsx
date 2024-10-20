@@ -6,6 +6,7 @@ import Spline from "@splinetool/react-spline";
 import { CSSTransition } from "react-transition-group";
 import { Chatbox } from "../comp/chatbox";
 import axios from "axios";
+import FlappyBird from "../comp/bird";
 
 function Card({ label, val, description }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -58,23 +59,58 @@ const callWebhook = () => {
       console.error("Error:", error);
     });
 };
-
-function SplineComponent() {
-  const messages = [
-    "Ask me about the technical analysis of this stock.",
-    "Ask me about the latest news related to this stock.",
-    "Ask me about the fundamental analysis of this company.",
-    "Ask me about asset management strategies for your portfolio.",
-    "Ask me about how this stock compares to its competitors.",
-    "Ask me about the company's recent earnings report.",
-    "Ask me about the best-performing sectors in the market.",
-    "Ask me about how this stock is performing against the market.",
-    "Ask me about how macroeconomic factors could affect this company.",
-    "Ask me about the dividend yield and payout ratio of this stock.",
-  ];
-
-  const [currentMessage, setCurrentMessage] = useState(messages[0]);
+function SplineComponent({ setTextInput }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+
+  const thoughtQuestionMapping = [
+    {
+      botThought: "Ask me about the technical analysis of this stock.",
+      userQuestion: "What is the technical analysis of this stock?",
+    },
+    {
+      botThought: "Ask me about the latest news related to this stock.",
+      userQuestion: "What is the latest news related to this stock?",
+    },
+    {
+      botThought: "Ask me about the fundamental analysis of this company.",
+      userQuestion: "Can you provide the fundamental analysis of this company?",
+    },
+    {
+      botThought:
+        "Ask me about asset management strategies for your portfolio.",
+      userQuestion:
+        "What are some good asset management strategies for my portfolio?",
+    },
+    {
+      botThought: "Ask me about how this stock compares to its competitors.",
+      userQuestion: "How does this stock compare to its competitors?",
+    },
+    {
+      botThought: "Ask me about the company's recent earnings report.",
+      userQuestion: "Can you share the company's recent earnings report?",
+    },
+    {
+      botThought: "Ask me about the best-performing sectors in the market.",
+      userQuestion: "What are the best-performing sectors in the market?",
+    },
+    {
+      botThought:
+        "Ask me about how this stock is performing against the market.",
+      userQuestion: "How is this stock performing against the market?",
+    },
+    {
+      botThought:
+        "Ask me about how macroeconomic factors could affect this company.",
+      userQuestion: "How could macroeconomic factors affect this company?",
+    },
+    {
+      botThought:
+        "Ask me about the dividend yield and payout ratio of this stock.",
+      userQuestion:
+        "What is the dividend yield and payout ratio of this stock?",
+    },
+  ];
 
   const handleSplineClick = () => {
     // Fade out
@@ -82,14 +118,21 @@ function SplineComponent() {
 
     // Change message after 1 second (duration of fade-out)
     setTimeout(() => {
-      const nextMessage = messages[Math.floor(Math.random() * messages.length)];
-      setCurrentMessage(nextMessage);
+      const randomIndex = Math.floor(
+        Math.random() * thoughtQuestionMapping.length
+      );
+      setCurrentIndex(randomIndex);
       setIsVisible(true); // Fade in again
     }, 1000); // 1 second delay to allow fade-out
   };
 
+  const handleAskNowClick = () => {
+    // Insert the user question corresponding to the current bot thought into the chat input
+    setTextInput(thoughtQuestionMapping[currentIndex].userQuestion);
+  };
+
   return (
-    <div className="relative w-[510px] h-[250px] flex mr-[20px] ml-auto cursor-pointer">
+    <div className="relative w-[510px] h-[280px] flex mr-[20px] ml-auto cursor-pointer">
       {/* Spline Component */}
       <Spline
         scene="https://prod.spline.design/S7D4JRV2ZdplQ04u/scene.splinecode"
@@ -106,9 +149,16 @@ function SplineComponent() {
         <div className="top-0 left-0">
           <div className="absolute ml-[-55px] mt-[70px] bg-white text-black p-2 rounded-lg shadow-lg w-[13px] h-[15px]"></div>
           <div className="absolute ml-[-30px] mt-[47px] bg-white text-black p-2 rounded-lg shadow-lg w-[20px] h-[30px]"></div>
-          <div className=" bg-white text-black p-2 rounded-lg text-[12px] leading-[14px] shadow-lg w-[150px] h-[70px]">
-            {currentMessage}
+          <div className="bg-white text-black p-2 rounded-lg text-[12px] leading-[14px] shadow-lg w-[150px] h-[90px]">
+            {thoughtQuestionMapping[currentIndex].botThought}
+            {/* Add Ask Now button */}
           </div>
+          <button
+            className="bg-blue-500 text-white rounded mt-2 px-2 py-1"
+            onClick={handleAskNowClick}
+          >
+            Ask Now
+          </button>
         </div>
       </CSSTransition>
 
@@ -199,7 +249,7 @@ function StockChart({ stockId, indicators }) {
   );
 }
 
-function ChatSystem() {
+function ChatSystem({ textInput, setTextInput }) {
   const [chatMessages, setChatMessages] = useState([
     {
       position: "left",
@@ -207,7 +257,6 @@ function ChatSystem() {
       text: "Hello, I am Schwab Bot. How can I assist you?",
     },
   ]);
-  const [textInput, setTextInput] = useState("");
 
   const handleSendMessage = () => {
     if (!textInput) return;
@@ -230,18 +279,18 @@ function ChatSystem() {
   };
 
   return (
-    <div className="bg-black w-[80%] mx-auto flex-col h-[50vh]">
+    <div className="w-[80%] mx-auto flex-col h-[50vh]">
       <Chatbox messages={chatMessages} />
-      <div className="flex w-full h-[50px]">
+      <div className="flex w-full h-[50px] rounded-lg border-2">
         <input
-          className="w-[70%]"
+          className="w-[70%] px-2 py-1 bg-gray-200 rounded-l-lg outline-none"
           type="text"
           value={textInput}
           onChange={(e) => setTextInput(e.target.value)}
           placeholder="Type your message..."
         />
         <button
-          className="w-[30%] bg-black text-white"
+          className="w-[30%] bg-black text-white rounded-r-lg"
           onClick={handleSendMessage}
         >
           Send
@@ -321,6 +370,7 @@ function Home() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [indicators, setIndicators] = useState([]);
+  const [textInput, setTextInput] = useState("");
   const [isClicked, setIsClicked] = useState(false);
 
   const handleClick = () => {
@@ -364,17 +414,25 @@ function Home() {
         />
 
         {/* Stock List */}
-        <ul>
-          {filteredStocks.map((stockId) => (
-            <li
-              key={stockId}
-              className="cursor-pointer font-medium p-2 hover:bg-gray-700"
-              onClick={() => handleStockSelect(stockId)}
-            >
-              {stockId.toUpperCase()}
-            </li>
-          ))}
-        </ul>
+        <div className="h-[80vh] overflow-y-scroll">
+          <ul>
+            {filteredStocks.map((stockId) => (
+              <li
+                key={stockId}
+                className="cursor-pointer font-medium p-2 hover:bg-gray-700"
+                onClick={() => handleStockSelect(stockId)}
+              >
+                {stockId.toUpperCase()}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <button
+          className="w-full bg-[#3d81f4] h-[40px] rounded-[15px]"
+          onClick={() => setSelectedStock(null)}
+        >
+          Game
+        </button>
       </div>
 
       <div
@@ -425,13 +483,17 @@ function Home() {
                 </div>
               </div>
               <div className="w-1/2 p-4 shadow-md overflow-y-scroll">
-                <div className="flex px-6">
-                  <h2 className="text-2xl text-white font-bold mb-4">
+                <div className="flex px-6 items-center">
+                  <h2 className="text-[30px] mt-[8px] text-white font-bold mb-4">
                     {selectedStock.stockId.toUpperCase()}&nbsp;&nbsp;
                   </h2>
-                  <h2 className="text-2xl text-[#5eccdc] font-bold mb-4">
+                  <h2 className="text-[30px] mt-[8px] text-[#5eccdc] font-bold mb-4">
                     ${selectedStock.price}
                   </h2>
+                  <img
+                    className="ml-auto w-[50px] h-[50px] mb-[4px]"
+                    src={`https://financialmodelingprep.com/image-stock/${selectedStock.stockId.toUpperCase()}.png?apikey=90449c63998514b28abd312885a78779`}
+                  />
                 </div>
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4"></div>
                 <div className="flex px-6">
@@ -515,15 +577,13 @@ function Home() {
 
               {/* Right Pane (Blank) */}
               <div className="w-1/2 p-4 shadow-md rounded bg-black bg-opacity-70">
-                <SplineComponent />
-                <ChatSystem />
+                <SplineComponent setTextInput={setTextInput} />
+                <ChatSystem textInput={textInput} setTextInput={setTextInput} />
               </div>
             </div>
           </div>
         ) : (
-          <p className="text-white">
-            Select a stock from the list to view details.
-          </p>
+          <FlappyBird />
         )}
       </div>
     </div>
