@@ -18,7 +18,7 @@ def db(stocks):
     file.close()
     for stock in stocks:
         try:
-            res = requests.get('https://financialmodelingprep.com/api/v3/income-statement/'+stock+'?apikey=90449c63998514b28abd312885a78779')
+            res = requests.get('https://financialmodelingprep.com/api/v3/income-statement/'+stock+'?apikey=t9UwsMha0V9DQzi8tGkSQzD3WMexO05j')
             data = json.loads(res.content)
             epslist = [x["epsdiluted"] for x in data]
             epslist.reverse()
@@ -35,15 +35,15 @@ def db(stocks):
                 tenyearly = [round(abs((epslist[i]/epslist[i-10])**(0.1).real-1)*100,2) if epslist[i-10] else '-' for i in range(1,len(epslist))][-10:]
             else:
                 tenyearly = []
-            res = requests.get('https://financialmodelingprep.com/api/v3/key-metrics-ttm/'+stock+'?limit=40&apikey=90449c63998514b28abd312885a78779')
+            res = requests.get('https://financialmodelingprep.com/api/v3/key-metrics-ttm/'+stock+'?limit=40&apikey=t9UwsMha0V9DQzi8tGkSQzD3WMexO05j')
             data = json.loads(res.content)
             bvps=data[0]["bookValuePerShareTTM"]
-            res = requests.get('https://financialmodelingprep.com/api/v3/key-metrics/'+stock+'?limit=40&apikey=90449c63998514b28abd312885a78779')
+            res = requests.get('https://financialmodelingprep.com/api/v3/key-metrics/'+stock+'?limit=40&apikey=t9UwsMha0V9DQzi8tGkSQzD3WMexO05j')
             data = json.loads(res.content)
             roic=[round(float(x["roic"]),2) if x["roic"] else 0 for x in data]
             roic.reverse()
 
-            res = requests.get("https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/"+stock+"?apikey=90449c63998514b28abd312885a78779")
+            res = requests.get("https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/"+stock+"?apikey=t9UwsMha0V9DQzi8tGkSQzD3WMexO05j")
             data = json.loads(res.content)
             data["historical"].reverse()
             dividendlist = [x["adjDividend"] for x in data["historical"]]
@@ -65,7 +65,7 @@ def db(stocks):
                 dividendTTM = np.sum(dividendlist[-4:]) 
                 dividendbyyear.append(dividendTTM)
 
-            res = requests.get('https://financialmodelingprep.com/api/v3/ratios/'+stock+'?limit=40&apikey=90449c63998514b28abd312885a78779')
+            res = requests.get('https://financialmodelingprep.com/api/v3/ratios/'+stock+'?limit=40&apikey=t9UwsMha0V9DQzi8tGkSQzD3WMexO05j')
             data = json.loads(res.content)
             freecash = [round(float(x["freeCashFlowPerShare"]),2) if x["freeCashFlowPerShare"] else 0 for x in data]
             freecash.reverse()

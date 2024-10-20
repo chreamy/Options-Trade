@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import mt from "../assets/mountain.jpg";
+import p1 from "../assets/1.png";
+import p2 from "../assets/2.png";
+import p3 from "../assets/3.png";
+import p4 from "../assets/4.png";
+import placeholder from "../assets/placeholder.png";
 import load from "../assets/load.gif";
 import ReactCardFlip from "react-card-flip";
 import Spline from "@splinetool/react-spline";
@@ -7,6 +12,7 @@ import { CSSTransition } from "react-transition-group";
 import { Chatbox } from "../comp/chatbox";
 import axios from "axios";
 import FlappyBird from "../comp/bird";
+import { sp500 } from "./sp500";
 
 function Card({ label, val, description }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -301,89 +307,33 @@ function ChatSystem({ textInput, setTextInput }) {
 }
 
 function Home() {
-  const stocks = {
-    msft: {
-      price: 418.16,
-      stdev: 0.02091255767432752,
-      score: 6,
-      asset: 5.31,
-      growth: 27.78,
-      dividend: 16.26,
-      overall: 27.78,
-    },
-    nvda: {
-      price: 138,
-      stdev: 0.06645322386448063,
-      score: 5.5,
-      asset: 3.4,
-      growth: 15.13,
-      dividend: 2.9,
-      overall: 15.13,
-    },
-    sbux: {
-      price: 96.84,
-      stdev: 0.04342255885058418,
-      score: 5.0,
-      asset: -6.02,
-      growth: 35.07,
-      dividend: 54.73,
-      overall: 54.73,
-    },
-    meta: {
-      price: 576.47,
-      stdev: 0.050737095444073455,
-      score: 3.5,
-      asset: 7.24,
-      growth: 17.88,
-      dividend: 0,
-      overall: 17.88,
-    },
-    nflx: {
-      price: 763.89,
-      stdev: 0.03104979469590002,
-      score: 3.0,
-      asset: 5.39,
-      growth: 15.63,
-      dividend: 0,
-      overall: 15.63,
-    },
-    amzn: {
-      price: 188.99,
-      stdev: 0.038039619820746044,
-      score: 0.5,
-      asset: 6.94,
-      growth: 0,
-      dividend: 0,
-      overall: 6.94,
-    },
-    u: {
-      price: 22.11,
-      stdev: 0.11141467226311337,
-      score: 0,
-      asset: 31.49,
-      growth: 0,
-      dividend: 0,
-      overall: 31.48,
-    },
-  };
+  const stocks = sp500;
 
   const [selectedStock, setSelectedStock] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [indicators, setIndicators] = useState([]);
   const [textInput, setTextInput] = useState("");
   const [isClicked, setIsClicked] = useState(false);
+  const [darkenOverlay, setDarkenOverlay] = useState(false);
 
   const handleClick = () => {
     setIsClicked(true);
   };
 
-  const handleStockSelect = (stockId) => {
-    const selectedStockWithId = {
-      ...stocks[stockId],
-      stockId: stockId,
-    };
-    setIsClicked(false);
-    setSelectedStock(selectedStockWithId);
+  const handleStockSelect = (ticker) => {
+    axios
+      .post(`http://localhost:3001/api/fsdata/metric`, { symbol: ticker })
+      .then((response) => {
+        console.log(response.data.response);
+        setSelectedStock({
+          stockId: ticker, // or just 'ticker,' in shorthand ES6
+          ...response.data.response, // assuming 'response.data.response' is an object with stock details
+        });
+        setIsClicked(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching stock details:", error);
+      });
   };
 
   const handleIndicatorChange = (e) => {
@@ -395,8 +345,8 @@ function Home() {
     }
   };
 
-  const filteredStocks = Object.keys(stocks).filter((stockId) =>
-    stockId.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStocks = stocks.filter((stock) =>
+    stock.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -414,7 +364,7 @@ function Home() {
         />
 
         {/* Stock List */}
-        <div className="h-[80vh] overflow-y-scroll">
+        <div className="h-[75vh] mb-6 overflow-y-scroll">
           <ul>
             {filteredStocks.map((stockId) => (
               <li
@@ -429,7 +379,7 @@ function Home() {
         </div>
         <button
           className="w-full bg-[#3d81f4] h-[40px] rounded-[15px]"
-          onClick={() => setSelectedStock(null)}
+          onClick={() => setSelectedStock("game")}
         >
           Game
         </button>
@@ -441,7 +391,9 @@ function Home() {
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url(${mt})`,
         }}
       >
-        {selectedStock ? (
+        {selectedStock == "game" ? (
+          <FlappyBird />
+        ) : selectedStock ? (
           <div className="absolute w-[85%] h-full z-1 shadow-md rounded">
             <div className="flex w-full h-full">
               <div className="absolute w-[100px] ml-[50%] translate-x-[-50px] h-full content-center place-self-center justify-self-center items-center flex text-center z-[10]">
@@ -507,30 +459,50 @@ function Home() {
                     val={selectedStock.stdev.toFixed(4)}
                     description="A measure of the price volatility."
                   />
+
                   <Card
-                    label="Score:"
-                    val={selectedStock.score}
-                    description="A rating based on financial metrics."
+                    label="Current Assets:"
+                    val={`$${selectedStock.totalCurrentAssets}M`}
+                    description="Things that can be turned into cash quick."
                   />
                   <Card
-                    label="Asset:"
-                    val={selectedStock.asset}
+                    label="Current Liabilites:"
+                    val={`$${selectedStock.totalCurrentLiabilities}M`}
+                    description="Money owed due within 1 year."
+                  />
+                  <Card
+                    label="BVPS:"
+                    val={selectedStock.bvps}
                     description="The total assets held by the company."
                   />
                   <Card
                     label="Growth:"
-                    val={`${selectedStock.growth}%`}
-                    description="The projected growth rate of the stock."
+                    val={`${(
+                      (selectedStock.eps[selectedStock.eps.length - 1] || 0) /
+                      (selectedStock.eps[selectedStock.eps.length - 2] ||
+                        999999)
+                    ).toFixed(4)}%`}
+                    description="The growth rate of earnings"
                   />
                   <Card
                     label="Dividend:"
-                    val={`${selectedStock.dividend}%`}
+                    val={`${selectedStock.dividend[9]}%`}
                     description="% of earnings distributed to shareholders."
                   />
                   <Card
-                    label="Overall:"
-                    val={`${selectedStock.overall}%`}
-                    description="The overall rating of the stock."
+                    label="Shareholder Equity:"
+                    val={`$${selectedStock.totalStockholdersEquity}M`}
+                    description="A company's net worth."
+                  />
+                  <Card
+                    label="Dividend Yield:"
+                    val={`${selectedStock.dividendYield.toFixed(4)}%`}
+                    description="Dividends per share over share price."
+                  />
+                  <Card
+                    label="Earnings Yield:"
+                    val={`${selectedStock.earningsYield.toFixed(4)}%`}
+                    description="Earnings per share over share price."
                   />
                 </div>
                 <div className="bg-white h-[0.5px] w-auto mx-6 mb-4 mt-6"></div>
@@ -583,7 +555,68 @@ function Home() {
             </div>
           </div>
         ) : (
-          <FlappyBird />
+          <div
+            className="flex relative h-full"
+            style={{
+              backgroundImage: `url(${placeholder})`,
+              backgroundSize: "cover",
+            }}
+          >
+            {darkenOverlay && (
+              <div
+                className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-10"
+                onClick={() => setDarkenOverlay(false)} // Remove darken overlay on click
+              >
+                <div className="bg-white p-8 rounded-lg shadow-lg text-center w-[700px]">
+                  <h2 className="text-xl font-bold mb-4 text-black">
+                    Tutorial
+                  </h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-700 mb-2">
+                        1. Select a stock you want to research
+                      </p>
+                      <img src={p1} alt="Step 1" className="h-[150px]" />
+                    </div>
+
+                    <div>
+                      <p className="text-gray-700 mb-2">
+                        2. Analyze key metrics for the stock
+                      </p>
+                      <img src={p2} alt="Step 2" className="h-[150px]" />
+                    </div>
+
+                    <div>
+                      <p className="text-gray-700 mb-2">
+                        3. Chat with our AI financial advisor
+                      </p>
+                      <img src={p3} alt="Step 3" className="h-[150px]" />
+                    </div>
+
+                    <div>
+                      <p className="text-gray-700 mb-2">4. Play the game!</p>
+                      <img src={p4} alt="Step 4" className="h-[150px]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="absolute w-[500px] mt-[100px]">
+              <Spline
+                className="cursor-pointer"
+                scene="https://prod.spline.design/S7D4JRV2ZdplQ04u/scene.splinecode"
+                onClick={() => {}}
+              />
+            </div>
+
+            <Spline
+              scene="https://prod.spline.design/EMzjEcMrMGdp3RrW/scene.splinecode"
+              className="absoloute cursor-pointer"
+              onMouseDown={(e) => {
+                setDarkenOverlay(true);
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

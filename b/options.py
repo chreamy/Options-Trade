@@ -39,8 +39,8 @@ stocks = json.load(file)
 for symbol in symbols:
     try:
         stock = stocks[symbol]
-        price = json.loads(requests.get('https://financialmodelingprep.com/api/v3/quote-short/'+symbol+'?apikey=90449c63998514b28abd312885a78779').content)[0]['price']
-        stdev = json.loads(requests.get('https://financialmodelingprep.com/api/v3/technical_indicator/daily/'+symbol+'?period=50&type=standardDeviation&apikey=90449c63998514b28abd312885a78779').content)[0]['standardDeviation']
+        price = json.loads(requests.get('https://financialmodelingprep.com/api/v3/quote-short/'+symbol+'?apikey=t9UwsMha0V9DQzi8tGkSQzD3WMexO05j').content)[0]['price']
+        stdev = json.loads(requests.get('https://financialmodelingprep.com/api/v3/technical_indicator/daily/'+symbol+'?period=50&type=standardDeviation&apikey=t9UwsMha0V9DQzi8tGkSQzD3WMexO05j').content)[0]['standardDeviation']
 
         print("\n\nAnalysis Report for",symbol.upper(),'\n',''.join(['-' for x in range(len(symbol)+19)]))
         print("Price",price,end='\n\n')
