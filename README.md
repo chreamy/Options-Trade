@@ -8,20 +8,17 @@ Check it out [here](https://schwab-bot.netlify.app/)!
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Features](#features)
-- [Contributing](#contributing)
-- [License](#license)
 - [Acknowledgments](#acknowledgments)
 
 ## Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/repo-name.git
+   git clone https://github.com/chreamy/Options-Trade.git
    ```
 2. Navigate to the project directory:
    ```bash
-   cd repo-name
+   cd Options-Trade
    ```
 3. Install the required dependencies:
    ```bash
@@ -36,13 +33,6 @@ Instructions for using your project, including any examples.
 npm start
 ```
 
-You can also provide code snippets or screenshots if applicable.
-
-## Features
-
-- Feature 1
-- Feature 2
-- Feature 3
 
 ## Acknowledgments
 
