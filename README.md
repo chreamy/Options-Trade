@@ -2,6 +2,8 @@
 
 Our app empowers individuals by providing key metrics essential for stock valuation, from balance sheets to cash flow. It’s designed to educate users, helping them understand the financial indicators that drive investment decisions.
 
+Check it out [here](https://schwab-bot.netlify.app/)!
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -41,11 +43,6 @@ You can also provide code snippets or screenshots if applicable.
 - Feature 1
 - Feature 2
 - Feature 3
-
-
-## License
-
-This project is licensed under the [Your License] - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Acknowledgments
 
